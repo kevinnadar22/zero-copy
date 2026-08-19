@@ -86,6 +86,8 @@ export function BenchmarkChart({
   const fmt = formatValue ?? ((v: number) => v.toLocaleString())
   const yFmt = yTickFormat ?? ((v: number) => v.toLocaleString())
   const winner = winnerIs ? getWinner(data, winnerIs) : null
+  const maxPairedValue = data.reduce((m, d) => Math.max(m, d.capnp, d.json), 0)
+  const pairedDomainMax = maxPairedValue > 0 ? maxPairedValue * 1.12 : 1
 
   if (singleBar) {
     const items = data.map((d) => ({
@@ -95,6 +97,8 @@ export function BenchmarkChart({
     }))
 
     const sizeWinner = items[0].value <= items[1].value ? items[0].name : items[1].name
+    const maxSingleValue = items.reduce((m, d) => Math.max(m, d.value), 0)
+    const singleDomainMax = maxSingleValue > 0 ? maxSingleValue * 1.12 : 1
 
     return (
       <Card>
@@ -125,6 +129,8 @@ export function BenchmarkChart({
                 fontSize={11}
                 tick={{ fill: 'var(--muted-foreground)' }}
                 tickFormatter={(v: number) => yFmt(Number(v))}
+                domain={[0, singleDomainMax]}
+                allowDataOverflow
               />
               <ChartTooltip content={<ChartTooltipContent formatter={(value) => fmt(Number(value))} />} />
               <Bar dataKey="value" radius={[8, 8, 0, 0]} animationDuration={800}>
@@ -171,6 +177,8 @@ export function BenchmarkChart({
               fontSize={11}
               tick={{ fill: 'var(--muted-foreground)' }}
               tickFormatter={(v: number) => yFmt(Number(v))}
+              domain={[0, pairedDomainMax]}
+              allowDataOverflow
               label={{ value: yLabel, angle: -90, position: 'insideLeft', fontSize: 11, fill: 'var(--muted-foreground)' }}
             />
             <ChartTooltip content={<ChartTooltipContent formatter={(value) => fmt(Number(value))} />} />
