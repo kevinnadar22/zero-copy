@@ -17,7 +17,7 @@ interface Props {
 export function ControlPanel({ state, history, onRun, onRestore, centered }: Props) {
   const githubUrl = 'https://github.com/kevinnadar22/zero-copy.git'
   const [schema, setSchema] = useState<SchemaName>('user')
-  const [count, setCount] = useState(100_100)
+  const [count, setCount] = useState(100_000)
   const running = state === 'running' || state === 'connecting'
 
   const [showDone, setShowDone] = useState(false)
