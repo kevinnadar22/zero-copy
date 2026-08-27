@@ -1,8 +1,11 @@
 import json
+import os
+from pathlib import Path
 
 from benchmark import SCHEMA_REGISTRY, run_benchmark
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="Zero-Copy Benchmark API")
 
@@ -13,7 +16,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.frontend("/", directory="assets")
+ASSETS_DIR = Path(__file__).parent / "assets"
+
 
 @app.get("/api/schemas")
 async def list_schemas():
@@ -48,7 +52,6 @@ async def benchmark_ws(websocket: WebSocket):
                 await websocket.send_json({"type": "error", "message": f"Count exceeds max {max_count}"})
                 continue
 
-            # Scale batch size based on count
             if count <= 10_000:
                 batch_size = count
             elif count <= 1_000_000:
@@ -74,6 +77,12 @@ async def benchmark_ws(websocket: WebSocket):
         pass
 
 
+# Serve built frontend when assets exist (Docker / self-hosted).
+if ASSETS_DIR.is_dir() and (ASSETS_DIR / "index.html").exists():
+    app.mount("/", StaticFiles(directory=str(ASSETS_DIR), html=True), name="frontend")
+
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
